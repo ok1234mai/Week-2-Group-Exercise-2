@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeamFlow | Customer Engagement Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563EB; /* TeamFlow Blue */
+            --bg-color: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --danger: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background-color: #111827;
+            color: white;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo { font-size: 22px; font-weight: bold; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 12px; margin-bottom: 5px; cursor: pointer; color: #9CA3AF; border-radius: 8px; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { background-color: #374151; color: white; }
+
+        /* Main Content */
+        .main-content { flex: 1; padding: 32px; overflow-y: auto; }
+
+        /* Requirement 1: Top Filter Bar */
+        .header-filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .filter-group { display: flex; gap: 15px; }
+        select { padding: 8px 12px; border: 1px solid #E5E7EB; border-radius: 6px; color: var(--text-main); font-family: 'Inter'; cursor: pointer; }
+
+        /* Grid Layout */
+        .grid-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 24px; }
+        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); }
+        .col-span-2 { grid-column: span 2; }
+        .col-span-4 { grid-column: span 4; }
+
+        h3 { margin: 0 0 15px 0; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .metric-big { font-size: 32px; font-weight: 700; margin: 10px 0; color: #111827; }
+        .trend { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .trend.up { color: var(--success); }
+        .trend.down { color: var(--danger); }
+
+        /* Table (Requirement 5) */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--text-muted); font-size: 12px; padding: 12px; border-bottom: 2px solid #F3F4F6; font-weight: 600; }
+        td { padding: 16px 12px; border-bottom: 1px solid #F3F4F6; font-size: 14px; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .bg-high { background-color: #FEF2F2; color: #DC2626; }
+        .bg-med { background-color: #FFFBEB; color: #D97706; }
+        .bg-low { background-color: #ECFDF5; color: #059669; }
+        .btn { background: white; border: 1px solid #E5E7EB; color: #374151; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; }
+        .btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo"><i class="fas fa-layer-group" style="color:var(--primary)"></i> TeamFlow</div>
+        <div class="nav-item active"><i class="fas fa-chart-pie"></i> Engagement</div>
+        <div class="nav-item"><i class="fas fa-users"></i> Customers</div>
+        <div class="nav-item"><i class="fas fa-envelope"></i> Communication</div>
+        <div class="nav-item"><i class="fas fa-cog"></i> Settings</div>
+    </div>
+
+    <div class="main-content">
+        <!-- Requirement 1: Top Filter Bar -->
+        <div class="header-filters">
+            <h2 style="margin:0; font-size:20px; font-weight:700;">Engagement Overview</h2>
+            <div class="filter-group">
+                <select onchange="alert('Date Range Updated!')">
+                    <option>Last 30 Days</option>
+                    <option>Last 7 Days</option>
+                    <option>Last Quarter</option>
+                </select>
+                <select onchange="alert('Segment Updated!')">
+                    <option>All Segments</option>
+                    <option>SMB</option>
+                    <option>Enterprise</option>
+                </select>
+                <select onchange="alert('Cohort Updated!')">
+                    <option>All Cohorts</option>
+                    <option>Q1 Signups</option>
+                    <option>Q2 Signups</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Requirement 2: Engagement Metrics -->
+        <div class="grid-row">
+            <div class="card col-span-2">
+                <h3>DAU/MAU Ratio (Stickiness)</h3>
+                <canvas id="dauChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>Avg Session Duration</h3>
+                <div class="metric-big">12m 30s</div>
+                <div class="trend up"><i class="fas fa-arrow-up"></i> 8% vs last week</div>
+            </div>
+            <div class="card">
+                <h3>Feature Adoption Rates</h3>
+                <canvas id="featureChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Requirement 3: Customer Journey -->
+        <div class="grid-row">
+            <div class="card col-span-2">
+                <h3>Milestone Completion (Journey)</h3>
+                <canvas id="journeyChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>Activation Rate</h3>
+                <div class="metric-big">45%</div>
+                <div class="trend up"><i class="fas fa-arrow-up"></i> 2% vs last month</div>
+                <p style="font-size:12px; color:#9CA3AF; margin-top:5px;">Users completing setup</p>
+            </div>
+            <div class="card">
+                <h3>Time-to-Value</h3>
+                <div class="metric-big">2.5 Days</div>
+                <div class="trend down"><i class="fas fa-arrow-down"></i> 0.5 Days (Good)</div>
+                <p style="font-size:12px; color:#9CA3AF; margin-top:5px;">Time to first project</p>
+            </div>
+        </div>
+
+        <!-- Requirement 4: Communication Effectiveness -->
+        <div class="grid-row">
+            <div class="card">
+                <h3>Email Open Rates</h3>
+                <canvas id="emailChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>In-App Message CTR</h3>
+                <div class="metric-big">3.2%</div>
+                <div class="trend down"><i class="fas fa-arrow-down"></i> 0.1% vs last week</div>
+            </div>
+            <div class="card col-span-2">
+                <h3>Support Ticket Trends</h3>
+                <canvas id="ticketChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Requirement 5: Retention Signals Table -->
+        <div class="grid-row">
+            <div class="card col-span-4">
+                <h3>At-Risk Indicators & Retention</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>COMPANY NAME</th>
+                            <th>LOGIN FREQUENCY</th>
+                            <th>ENGAGEMENT SCORE</th>
+                            <th>AT-RISK STATUS</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><b>Alpha Corp</b></td>
+                            <td>Daily</td>
+                            <td>92/100</td>
+                            <td><span class="badge bg-low">Low Risk</span></td>
+                            <td><button class="btn">View Details</button></td>
+                        </tr>
+                        <tr>
+                            <td><b>Beta Design Studio</b></td>
+                            <td>Rarely (Last: 14 days ago)</td>
+                            <td>35/100</td>
+                            <td><span class="badge bg-high">High Risk</span></td>
+                            <td><button class="btn">Contact CSM</button></td>
+                        </tr>
+                        <tr>
+                            <td><b>Gamma Logistics</b></td>
+                            <td>Weekly</td>
+                            <td>68/100</td>
+                            <td><span class="badge bg-med">Medium Risk</span></td>
+                            <td><button class="btn">Monitor</button></td>
+                        </tr>
+                        <tr>
+                            <td><b>Delta Tech</b></td>
+                            <td>Rarely (Last: 20 days ago)</td>
+                            <td>22/100</td>
+                            <td><span class="badge bg-high">High Risk</span></td>
+                            <td><button class="btn">Contact CSM</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Chart Defaults
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#6B7280';
+
+        // 1. DAU/MAU Chart
+        new Chart(document.getElementById('dauChart'), {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'DAU/MAU Ratio (%)',
+                    data: [42, 45, 48, 44, 46, 30, 32],
+                    borderColor: '#2563EB',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)'
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } }
+        });
+
+        // 2. Feature Adoption Chart
+        new Chart(document.getElementById('featureChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Task Board', 'Gantt', 'Time', 'Report'],
+                datasets: [{
+                    label: 'Adoption %',
+                    data: [85, 60, 40, 25],
+                    backgroundColor: ['#2563EB', '#60A5FA', '#93C5FD', '#BFDBFE'],
+                    borderRadius: 4
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { display: false } } } }
+        });
+
+        // 3. Journey Chart
+        new Chart(document.getElementById('journeyChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Sign Up', 'Profile Setup', 'First Project', 'Team Invited'],
+                datasets: [{
+                    label: 'Completion Rate',
+                    data: [100, 85, 60, 40],
+                    backgroundColor: '#10B981',
+                    borderRadius: 4
+                }]
+            },
+            options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { display: false } } } }
+        });
+
+        // 4. Email Chart
+        new Chart(document.getElementById('emailChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Opened', 'Clicked', 'Unopened'],
+                datasets: [{
+                    data: [45, 15, 40],
+                    backgroundColor: ['#2563EB', '#10B981', '#E5E7EB'],
+                    borderWidth: 0
+                }]
+            },
+            options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } }
+        });
+
+        // 5. Ticket Chart
+        new Chart(document.getElementById('ticketChart'), {
+            type: 'line',
+            data: {
+                labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'],
+                datasets: [{
+                    label: 'Tickets',
+                    data: [50, 45, 30, 25],
+                    borderColor: '#EF4444',
+                    tension: 0.4,
+                    pointRadius: 4
+                }]
+            },
+            options: { responsive: true, scales: { x: { grid: { display: false } } } }
+        });
+    </script>
+</body>
+</html>
